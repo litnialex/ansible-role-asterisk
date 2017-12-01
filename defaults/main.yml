@@ -1,6 +1,9 @@
-asterisk_git_version: 13.13
+asterisk_git_version: 13
 asterisk_src_dir: /usr/src/asterisk/
+asterisk_install_prefix:
 asterisk_state: latest
-asterisk_configure_options: --with-pjproject-bundled
+asterisk_configure_options: --with-pjproject-bundled --prefix={{ asterisk_install_prefix }}/
 asterisk_pre_make_commands: []
-asterisk_make_options: "-j4"
+asterisk_make_options: "-j2"
+asterisk_install_pkgs:
+- libgmime-2.6-dev

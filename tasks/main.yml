@@ -1,2 +1,12 @@
-- include: asterisk.yml
-  tags: asterisk
+- name: Download/update asterisk src
+  git:
+    repo: https://github.com/asterisk/asterisk.git
+    dest: "{{ asterisk_src_dir }}"
+    version: "{{ asterisk_git_version }}"
+    update: "{{ (asterisk_state == 'latest') }}"
+    depth: 1
+  register: asterisk_src_download
+
+- include: install.yml
+  tags: asterisk:install
+  when: asterisk_src_download.changed or ( force_install is defined )
