@@ -7,6 +7,6 @@
     depth: 1
   register: asterisk_src_download
 
-- include: install.yml
+- import_tasks: install.yml
   tags: asterisk:install
-  when: asterisk_src_download.changed or ( force_install is defined )
+  when: ( force_install is defined ) or ( asterisk_src_download.changed )

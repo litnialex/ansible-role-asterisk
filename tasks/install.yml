@@ -28,12 +28,8 @@
   command: make menuselect.makeopts chdir={{ asterisk_src_dir }}
 
 - name: Do a bit of menuselect configuration
-  command: "{{ item }} chdir={{ asterisk_src_dir }}"
-  with_items:
-    - menuselect/menuselect --enable format_mp3
-    - menuselect/menuselect --enable CORE-SOUNDS-EN-WAV --enable CORE-SOUNDS-EN-G722
-    - menuselect/menuselect  --enable EXTRA-SOUNDS-EN-GSM --enable EXTRA-SOUNDS-EN-WAV --enable EXTRA-SOUNDS-EN-G722
-    - menuselect/menuselect  --disable MOH-OPSOUND-WAV --disable MOH-OPSOUND-GSM --disable MOH-OPSOUND-G722
+  command: "menuselect/menuselect --{{ item.value }} {{ item.key }} chdir={{ asterisk_src_dir }}"
+  with_dict: "{{asterisk_menuselect }}"
 
 - name: Run custom pre-make commands
   command: "{{ item }} chdir={{ iasterisk_srcdir }}"
@@ -51,6 +47,22 @@
 - name: Install logrotate
   command: make install-logrotate chdir={{ asterisk_src_dir }}
   
+- name: Create group for asterisk
+  group: name={{ asterisk_rungroup }} system=yes
+  when: asterisk_rungroup != 'root'
+
+- name: Create user for asterisk
+  user: name={{ asterisk_runuser }} shell=/bin/false system=yes
+  when: asterisk_runuser != 'root'
+
+- name: Fix directory permissions
+  file: state=directory recurse=yes owner={{ asterisk_runuser }} group={{ asterisk_rungroup }} path={{ item }}
+  with_items:
+  - "{{ asterisk_install_prefix }}/var/run/asterisk"
+  - "{{ asterisk_install_prefix }}/var/lib/asterisk"
+  - "{{ asterisk_install_prefix }}/var/spool/asterisk"
+  - "{{ asterisk_install_prefix }}/var/log/asterisk"
+
 - name: Install systemd service
   template: src=systemd/system/asterisk.service dest=/etc/systemd/system/
 
