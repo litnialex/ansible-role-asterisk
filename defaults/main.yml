@@ -5,6 +5,7 @@ asterisk_state: latest
 asterisk_configure_options: --with-pjproject-bundled --with-jansson-bundled --prefix={{ asterisk_install_prefix }}/ --exec-prefix={{ asterisk_install_prefix }}/usr
 asterisk_pre_make_commands: []
 asterisk_make_options: "-j4"
+asterisk_make_samples: True
 asterisk_pkg_deps:
   - git
   - aptitude
