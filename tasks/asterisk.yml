@@ -1,3 +1,8 @@
+# Install packages needed by this role with any type of connection.
+- name: Install asterisk role dependencies
+  apt: name={{ asterisk_pkg_deps }}
+
+# Is role "pre" still needed with docker?
 - name: Run pre role on docker
   include_role: name=pre
   when: ansible_connection == 'docker'
@@ -36,9 +41,6 @@
   debug: msg={{asterisk_build_deps.stdout}}
   when: not asterisk_build_deps|skipped
 
-- name: Install aptitude (otherwise install_prereq fails)
-  apt: name=aptitude state=present
-
 - name: Let asterisk install dependencies
   shell: export DEBIAN_FRONTEND=noninteractive && ./contrib/scripts/install_prereq install chdir={{ asterisk_src_dir }}
   when: asterisk_install_prereq_md5sum.stdout != asterisk_install_prereq_md5sum_new.stdout
@@ -57,11 +59,7 @@
     # menuselect/menuselect creates a new config everytime, so we need to run it ONCE
     # with all options!
     # app_macro is required for freepbx but not enabled by default on asterisk >= 16
-    command: >
-      menuselect/menuselect --enable app_macro --enable format_mp3
-      --enable CORE-SOUNDS-EN-WAV --enable CORE-SOUNDS-EN-G722
-      --enable EXTRA-SOUNDS-EN-WAV --enable EXTRA-SOUNDS-EN-G722 --enable EXTRA-SOUNDS-EN-GSM
-      --disable-category MENUSELECT_MOH
+    command: "menuselect/menuselect {{ asterisk_menuselect }}"
     args:
       chdir: "{{ asterisk_src_dir }}"
   
@@ -77,9 +75,6 @@
   
   - name: Install
     command: make install chdir={{ asterisk_src_dir }}
-  
-  - name: Install initscripts
-    command: make config chdir={{ asterisk_src_dir }}
   
   - name: Install config
     command: make samples chdir={{ asterisk_src_dir }}
@@ -104,3 +99,21 @@
   include_role: name=post
   when: ansible_connection == 'docker'
 
+- name: Create group for asterisk
+  group: name={{ asterisk_rungroup }} system=yes
+  when: asterisk_rungroup != 'root'
+
+- name: Create user for asterisk
+  user: name={{ asterisk_runuser }} shell=/bin/false system=yes
+  when: asterisk_runuser != 'root'
+
+- name: Fix directory permissions
+  file: state=directory recurse=yes owner={{ asterisk_runuser }} group={{ asterisk_rungroup }} path={{ item }}
+  with_items:
+  - "{{ asterisk_install_prefix }}/var/run/asterisk"
+  - "{{ asterisk_install_prefix }}/var/lib/asterisk"
+  - "{{ asterisk_install_prefix }}/var/spool/asterisk"
+  - "{{ asterisk_install_prefix }}/var/log/asterisk"
+
+- name: Install systemd service
+  template: src=systemd/system/asterisk.service dest=/etc/systemd/system/

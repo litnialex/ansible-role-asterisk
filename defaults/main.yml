@@ -4,20 +4,14 @@ asterisk_install_prefix:
 asterisk_state: latest
 asterisk_configure_options: --with-pjproject-bundled --with-jansson-bundled --prefix={{ asterisk_install_prefix }}/ --exec-prefix={{ asterisk_install_prefix }}/usr
 asterisk_pre_make_commands: []
-asterisk_make_options: "-j2"
+asterisk_make_options: "-j4"
 asterisk_pkg_deps:
-- git
-- libgmime-2.6-dev
-asterisk_menuselect:
-  BUILD_NATIVE: disable #enable only if you are goint to run asterisk on the same machine type
-  format_mp3: enable
-  CORE-SOUNDS-EN-WAV: disable
-  CORE-SOUNDS-EN-G722: enable
-  EXTRA-SOUNDS-EN-GSM: disable
-  EXTRA-SOUNDS-EN-WAV: disable
-  EXTRA-SOUNDS-EN-G722: enable
-  MOH-OPSOUND-WAV: disable
-  MOH-OPSOUND-GSM: disable
-  MOH-OPSOUND-G722: enable
+  - git
+  - aptitude
+asterisk_menuselect: >
+  --enable app_macro --enable format_mp3
+  --enable CORE-SOUNDS-EN-WAV --enable CORE-SOUNDS-EN-G722
+  --enable EXTRA-SOUNDS-EN-WAV --enable EXTRA-SOUNDS-EN-G722 --enable EXTRA-SOUNDS-EN-GSM
+  --disable-category MENUSELECT_MOH
 asterisk_runuser: root
 asterisk_rungroup: root
