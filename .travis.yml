@@ -3,13 +3,14 @@ language: python
 python: "2.7"
 
 sudo: true
-dist: trusty
+dist: xenial
 
 addons:
   apt:
     packages:
     - python-pip
     - python-apt
+    - build-essential
 
 services:
   - docker
@@ -26,7 +27,13 @@ install:
   # Install ansible
   - pip install ansible
 
-  - git clone https://github.com/ansible/ansible-container.git && cd ansible-container && python ./setup.py install && cd ..
+  # https://github.com/ansible/ansible-container/issues/919
+  # https://github.com/geerlingguy/solr-container/commit/d3a621d4e652d3ed590b57bc1a8e2cfe2fa7cd48
+  # ansible-container is currently not maintained by ansible anymore
+  - pip install sa-ansible-container[docker]
+  
+  # otherwise install_prereq makes problems
+  - ${DOCKER} || sudo apt upgrade -y
 
   # Create ansible.cfg with correct roles_path
   - printf '[defaults]\nroles_path=../' >ansible.cfg
@@ -34,19 +41,21 @@ install:
 script:
   # Test role locally
   - ${DOCKER} || ansible-playbook tests/test.yml -i tests/inventory --syntax-check
-  - ${DOCKER} || ansible-playbook tests/test.yml -i tests/inventory --connection=local --sudo
+  - ${DOCKER} || ansible-playbook tests/test.yml -i tests/inventory --connection=local --sudo -vvv
+  - ${DOCKER} || ansible-playbook tests/test.yml -i tests/inventory --connection=local --sudo | tee idempotence-test.log
   - >
-    ${DOCKER} || ansible-playbook tests/test.yml -i tests/inventory --connection=local --sudo
-    | grep -q 'changed=0.*failed=0'
+    ${DOCKER} || grep -q 'changed=0.*failed=0' idempotence-test.log
     && (echo 'Idempotence test: pass' && exit 0)
     || (echo 'Idempotence test: fail' && exit 1)
 
   # Build docker container
-  - ${DOCKER} && cd tests/docker && ansible-container build 2>&1 | tee build.log || true
-  - ${DOCKER} && docker login --username "${DOCKER_USER}" --password "${DOCKER_PASS}" || true
-  - ${DOCKER} && hash=$(cat build.log | grep "Exported.*with image ID" | sed 's/.*sha256:\(.*\)/\1/g') || true
-  - ${DOCKER} && docker tag $hash ${DOCKER_USER}/asterisk:latest || true
-  - ${DOCKER} && docker push ${DOCKER_USER}/asterisk:latest || true
+  # (docker has problems with ! at the beginning of a string, therefore we use quotes)
+  # we're using '! $DOCKER || ..' instead of '$DOCKER && ..' because the commands NEED to have a
+  # non-error exit-code
+  - '! ${DOCKER} || cd tests/ansible-container'
+  - '! ${DOCKER} || ansible-container --debug build 2>&1'
+  - '! ${DOCKER} || touch docker.json' # ansible-container mysteriously fails if using the default ($HOME/.docker/config.json)
+  - '! ${DOCKER} || (export DOCKER_CONFIG=$(pwd)/docker.json && ansible-container push --push-to docker --username "${DOCKER_USER}" --password "${DOCKER_PASS}" --tag latest)'
 
 notifications:
   webhooks: https://galaxy.ansible.com/api/v1/notifications/

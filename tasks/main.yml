@@ -1,15 +1,2 @@
-- name: Install custom dependencies
-  apt: name={{ asterisk_install_pkgs }}
-
-- name: Download/update asterisk src
-  git:
-    repo: https://github.com/asterisk/asterisk.git
-    dest: "{{ asterisk_src_dir }}"
-    version: "{{ asterisk_git_version }}"
-    update: "{{ (asterisk_state == 'latest') }}"
-    depth: 1
-  register: asterisk_src_download
-
-- import_tasks: install.yml
-  tags: asterisk:install
-  when: ( force_install is defined ) or ( asterisk_src_download.changed )
+- import_tasks: asterisk.yml
+  tags: asterisk

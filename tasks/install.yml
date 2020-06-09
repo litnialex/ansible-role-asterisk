@@ -1,3 +1,6 @@
+- name: Install custom dependencies
+  apt: name={{ asterisk_pkg_deps }}
+
 - name: Check installable dependencies
   shell: >
     {{ asterisk_src_dir }}/contrib/scripts/install_prereq test |

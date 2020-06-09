@@ -1,0 +1,15 @@
+version: "2"
+settings:
+  conductor:
+    base: debian:stretch
+services:
+  asterisk:
+    from: debian:stretch
+    roles:
+      - Yannik.asterisk
+    command: ["/usr/sbin/asterisk", "-f"]
+registries:
+  docker:
+    url: https://docker.io
+    namespace: yanniksembritzki
+    repository_prefix: ''
