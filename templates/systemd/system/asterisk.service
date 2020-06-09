@@ -1,0 +1,21 @@
+[Unit]
+Description=asterisk
+After=network.target
+
+[Service]
+Type=forking
+PIDFile={{ asterisk_install_prefix }}/var/run/asterisk/asterisk.pid
+User={{ asterisk_runuser }}
+Group={{ asterisk_rungroup }}
+PermissionsStartOnly=true
+ExecStart={{ asterisk_install_prefix }}/usr/sbin/asterisk -F
+Restart=on-failure
+SyslogIdentifier=asterisk
+RestartSec=5
+Nice=-10
+LimitNOFILE=30000
+RuntimeDirectory=asterisk
+
+[Install]
+WantedBy=multi-user.target
+
