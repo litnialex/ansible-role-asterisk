@@ -20,6 +20,7 @@
     version: "{{ asterisk_git_version }}"
     update: "{{ (asterisk_state == 'latest') }}"
     depth: 1
+    force: True
   register: asterisk_src_download
 
 - name: Get current install_prereq md5sum
@@ -34,16 +35,16 @@
     | grep "aptitude install -y" \
     | sed 's/aptitude install -y //g'
   when: asterisk_install_prereq_md5sum.stdout != asterisk_install_prereq_md5sum_new.stdout
-        and ansible_connection == 'docker'
   register: asterisk_build_deps
 
 - name: Print dependencies to be installed
   debug: msg={{asterisk_build_deps.stdout}}
-  when: not asterisk_build_deps|skipped
+  when: not 'skipped' in asterisk_build_deps.keys()
 
 - name: Let asterisk install dependencies
-  shell: export DEBIAN_FRONTEND=noninteractive && ./contrib/scripts/install_prereq install chdir={{ asterisk_src_dir }}
-  when: asterisk_install_prereq_md5sum.stdout != asterisk_install_prereq_md5sum_new.stdout
+  apt:
+    name: "{{ asterisk_build_deps.stdout.split(' ') }}"
+  when: not 'skipped' in asterisk_build_deps.keys() and asterisk_build_deps.stdout != ""
 
 - block:
   - name: Download mp3 source code
@@ -54,7 +55,7 @@
 
   - name: Create menuselect.makeopts
     command: make menuselect.makeopts chdir={{ asterisk_src_dir }}
-  
+
   - name: Do a bit of menuselect configuration
     # menuselect/menuselect creates a new config everytime, so we need to run it ONCE
     # with all options!
@@ -78,22 +79,23 @@
   
   - name: Install config
     command: make samples chdir={{ asterisk_src_dir }}
+    when: asterisk_make_samples == True
 
   - name: Install logrotate
     command: make install-logrotate chdir={{ asterisk_src_dir }}
-  when: asterisk_src_download|changed
+  when: asterisk_src_download.changed
 
 - name: Uninstall corrupt dh-python package (otherwise the next command fails)
   command: apt purge -y dh-python
-  when: not asterisk_build_deps|skipped and ansible_connection == 'docker'
+  when: not 'skipped' in asterisk_build_deps.keys() and ansible_connection == 'docker'
 
 - name: Uninstall build dependencies when running on docker
   command: apt-get purge -y --auto-remove {{ asterisk_build_deps.stdout }}
-  when: not asterisk_build_deps|skipped and ansible_connection == 'docker'
+  when: not 'skipped' in asterisk_build_deps.keys() and ansible_connection == 'docker'
 
 - name: Install runtime dependencies when running on docker
   command: apt-get install --no-install-recommends -y libxml2 libxslt1.1 libjansson4 libedit2 lua5.1 libmariadbclient18 unixodbc libsqlite0 libcurl3 libiksemel3 libbluetooth3 libasound2 zlib1g libspeex1 libspeexdsp1 libogg0 libspandsp2 libsrtp0 libresample1 libsnmp30 libpq5 libpopt0 libc-client2007e libcorosync-common4 libgsm1 libical2 libneon27 libssl1.0.2 libvorbis0a libvorbisenc2 libvorbisfile3 libldap-2.4-2 libjack0 uuid liburiparser1
-  when: not asterisk_build_deps|skipped and ansible_connection == 'docker'
+  when: not 'skipped' in asterisk_build_deps.keys() and ansible_connection == 'docker'
 
 - name: Run post role on docker
   include_role: name=post
