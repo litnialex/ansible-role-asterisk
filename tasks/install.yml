@@ -14,10 +14,6 @@
   shell: export DEBIAN_FRONTEND=noninteractive && ./contrib/scripts/install_prereq install chdir={{ asterisk_src_dir }}
   when: install_prereq_test.changed
 
-- name: Install custom dependencies
-  apt: name={{ item }}
-  with_items: '{{ asterisk_install_pkgs }}'
-
 - name: Download mp3 source code
   command: ./contrib/scripts/get_mp3_source.sh chdir={{ asterisk_src_dir }} creates=addons/mp3/mpg123.h
 

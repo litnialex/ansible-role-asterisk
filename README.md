@@ -3,5 +3,6 @@
 Installs and builds asterisk from source.
 
 ToDO:
+- merge with upstream
 - logrotate
 - fail2ban

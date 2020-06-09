@@ -1,3 +1,6 @@
+- name: Install custom dependencies
+  apt: name={{ asterisk_install_pkgs }}
+
 - name: Download/update asterisk src
   git:
     repo: https://github.com/asterisk/asterisk.git
