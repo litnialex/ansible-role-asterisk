@@ -53,6 +53,9 @@
   - name: Configure asterisk
     command: ./configure {{ asterisk_configure_options }} chdir={{ asterisk_src_dir }}
 
+  - name: Absent menuselect.makeopts
+    file: state=absent dest={{ asterisk_src_dir }}/menuselect.makeopts
+
   - name: Create menuselect.makeopts
     command: make menuselect.makeopts chdir={{ asterisk_src_dir }}
 
@@ -81,8 +84,6 @@
     command: make samples chdir={{ asterisk_src_dir }}
     when: asterisk_make_samples == True
 
-  - name: Install logrotate
-    command: make install-logrotate chdir={{ asterisk_src_dir }}
   when: asterisk_src_download.changed
 
 - name: Uninstall corrupt dh-python package (otherwise the next command fails)
@@ -119,3 +120,6 @@
 
 - name: Install systemd service
   template: src=systemd/system/asterisk.service dest=/etc/systemd/system/
+
+- name: Install logrotate
+  template: dest=/etc/logrotate.d/ src=logrotate.d/asterisk

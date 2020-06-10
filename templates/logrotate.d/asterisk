@@ -1,0 +1,14 @@
+{{ asterisk_install_prefix }}//var/log/asterisk/messages
+{{ asterisk_install_prefix }}/var/log/asterisk/full
+{{ asterisk_install_prefix }}/var/log/asterisk/debug
+{{ asterisk_install_prefix }}/var/log/asterisk/console
+{{ asterisk_install_prefix }}/var/log/asterisk/*log
+{
+  daily
+  missingok
+  notifempty
+  rotate 52
+  delaycompress
+  copytruncate
+  dateext
+}
