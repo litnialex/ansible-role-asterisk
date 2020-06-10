@@ -1,4 +1,4 @@
-asterisk_git_version: 16
+asterisk_git_version: certified/16.8
 asterisk_src_dir: /usr/src/asterisk/
 asterisk_install_prefix:
 asterisk_state: latest
