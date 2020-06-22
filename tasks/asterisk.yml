@@ -62,8 +62,10 @@
   - name: Do a bit of menuselect configuration
     # menuselect/menuselect creates a new config everytime, so we need to run it ONCE
     # with all options!
-    # app_macro is required for freepbx but not enabled by default on asterisk >= 16
-    command: "menuselect/menuselect {{ asterisk_menuselect }}"
+    command: >
+      menuselect/menuselect
+      --enable {{ asterisk_menuselect_enable | join(' --enable ') }}
+      --disable {{ asterisk_menuselect_disable | join(' --enable ') }}
     args:
       chdir: "{{ asterisk_src_dir }}"
   

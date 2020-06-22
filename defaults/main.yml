@@ -9,10 +9,20 @@ asterisk_make_samples: True
 asterisk_pkg_deps:
   - git
   - aptitude
-asterisk_menuselect: >
-  --enable app_macro --enable format_mp3
-  --enable CORE-SOUNDS-EN-WAV --enable CORE-SOUNDS-EN-G722
-  --enable EXTRA-SOUNDS-EN-WAV --enable EXTRA-SOUNDS-EN-G722 --enable EXTRA-SOUNDS-EN-GSM
-  --disable-category MENUSELECT_MOH
+asterisk_menuselect_enable:
+  - app_chanisavail
+  - app_macro
+  - app_mp3
+  - format_mp3
+  - app_fax
+  - cdr_csv
+  - cdr_odbc
+  - cdr_syslog
+  - chan_sip
+  - codec_opus
+  - CORE-SOUNDS-EN-WAV
+  - EXTRA-SOUNDS-EN-WAV
+asterisk_menuselect_disable:
+  - pbx_dundi
 asterisk_runuser: root
 asterisk_rungroup: root
