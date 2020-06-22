@@ -14,7 +14,6 @@ asterisk_menuselect_enable:
   - app_macro
   - app_mp3
   - format_mp3
-  - app_fax
   - cdr_csv
   - cdr_odbc
   - cdr_syslog
